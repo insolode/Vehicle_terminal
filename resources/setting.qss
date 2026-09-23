@@ -1,0 +1,570 @@
+/***********************************************************************************************************/
+/***********************************     QToolBox   ******************************************************/
+/***********************************************************************************************************/
+
+QToolBox {
+    background-color: rgba(10, 20, 40, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 4px;
+
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 13px;
+    color: #c0c8d8;
+}
+
+/* 标签页按钮：默认状态，尽量轻 */
+QToolBox::tab {
+    background-color: transparent;
+    color: #c0c8d8;
+
+    border: none;
+    border-radius: 6px;
+
+    /* 微调：比之前各增加 1px，框稍微大一点点 */
+    padding: 2px 11px;
+    margin: 2px 0;
+    min-height: 19px;
+
+    font-size: 13px;
+    font-weight: normal;
+    text-align: left;
+}
+
+/* 悬停：极淡的蓝色，不抢眼 */
+QToolBox::tab:hover {
+    background-color: rgba(77, 155, 255, 0.12);
+    color: #ffffff;
+}
+
+/* 选中：只靠背景和文字颜色区分，不加边框 */
+QToolBox::tab:selected {
+    background-color: rgba(77, 155, 255, 0.22);
+    color: #FFD700;
+    font-weight: 500;
+}
+
+/* 选中且悬停：略微提亮 */
+QToolBox::tab:selected:hover {
+    background-color: rgba(77, 155, 255, 0.30);
+}
+
+/* 禁用 */
+QToolBox::tab:disabled {
+    color: #6b7280;
+    background-color: transparent;
+}
+
+/* 内容页面：干净、无边框、透明背景 */
+QToolBox > QWidget {
+    background: transparent;
+    border: none;
+    padding: 10px 6px;
+}
+
+
+
+/***********************************************************************************************************/
+/***********************************   暂停 / 切换 / 返回 按钮   *******************************************/
+/***********************************************************************************************************/
+
+/* 通用按钮基础样式：三个按钮共享 */
+QPushButton#pBtn_PauseGif,
+QPushButton#pBtn_SwitchGif,
+QPushButton#pushButton_8 {
+    background-color: rgba(0, 10, 30, 0.60);
+    color: #F0E6A0;
+
+    border: 1px solid rgba(255, 215, 0, 0.20);
+    border-radius: 6px;
+
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+
+    padding: 8px 20px;
+}
+
+/* 悬停：统一变蓝，文字变白 */
+QPushButton#pBtn_PauseGif:hover,
+QPushButton#pBtn_SwitchGif:hover,
+QPushButton#pushButton_8:hover {
+    background-color: rgba(77, 155, 255, 0.25);
+    border: 1px solid rgba(77, 155, 255, 0.50);
+    color: #ffffff;
+}
+
+/* 按下：颜色加深，模拟按压 */
+QPushButton#pBtn_PauseGif:pressed,
+QPushButton#pBtn_SwitchGif:pressed,
+QPushButton#pushButton_8:pressed {
+    background-color: rgba(15, 94, 199, 0.85);
+    border: 1px solid rgba(15, 94, 199, 0.90);
+    color: #ffffff;
+    padding-top: 9px;
+    padding-bottom: 7px;
+}
+
+/* 禁用 */
+QPushButton#pBtn_PauseGif:disabled,
+QPushButton#pBtn_SwitchGif:disabled,
+QPushButton#pushButton_8:disabled {
+    background-color: rgba(229, 231, 235, 0.15);
+    color: #9CA3AF;
+    border: 1px solid rgba(156, 163, 175, 0.20);
+}
+
+
+/***********************************************************************************************************/
+/***********************************   设置网络页面   *****************************************************/
+/***********************************************************************************************************/
+
+/* ==================== QLineEdit ==================== */
+
+QLineEdit {
+    background-color: rgba(0, 10, 30, 0.55);
+    color: #E8E8E8;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 13px;
+
+    padding: 7px 12px;
+    min-height: 18px;
+
+    selection-background-color: rgba(77, 155, 255, 0.55);
+    selection-color: #ffffff;
+}
+
+QLineEdit:hover {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+QLineEdit:focus {
+    border: 1px solid rgba(77, 155, 255, 0.70);
+    background-color: rgba(10, 25, 55, 0.65);
+}
+
+QLineEdit:disabled {
+    background-color: rgba(229, 231, 235, 0.10);
+    color: #6b7280;
+    border: 1px solid rgba(156, 163, 175, 0.15);
+}
+
+QLineEdit::placeholder {
+    color: #6b7280;
+}
+
+/* ==================== QListWidget ==================== */
+
+QListWidget {
+    background-color: rgba(0, 10, 30, 0.55);
+    color: #c0c8d8;
+
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 8px;
+
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 13px;
+
+    padding: 4px;
+    outline: none;
+}
+
+QListWidget::item {
+    background-color: transparent;
+    color: #c0c8d8;
+
+    border-radius: 5px;
+    padding: 7px 10px;
+    margin: 1px 0;
+}
+
+QListWidget::item:hover {
+    background-color: rgba(77, 155, 255, 0.12);
+    color: #ffffff;
+}
+
+QListWidget::item:selected {
+    background-color: rgba(77, 155, 255, 0.22);
+    color: #FFD700;
+}
+
+QListWidget::item:selected:hover {
+    background-color: rgba(77, 155, 255, 0.30);
+}
+
+QListWidget::item:disabled {
+    color: #6b7280;
+}
+
+/* 滚动条 */
+QListWidget QScrollBar:vertical {
+    background: transparent;
+    width: 6px;
+    margin: 2px;
+    border: none;
+}
+
+QListWidget QScrollBar::handle:vertical {
+    background: rgba(255, 215, 0, 0.28);
+    border-radius: 3px;
+    min-height: 24px;
+}
+
+QListWidget QScrollBar::handle:vertical:hover {
+    background: rgba(255, 215, 0, 0.45);
+}
+
+QListWidget QScrollBar::add-line:vertical,
+QListWidget QScrollBar::sub-line:vertical {
+    height: 0;
+    background: none;
+    border: none;
+}
+
+QListWidget QScrollBar::add-page:vertical,
+QListWidget QScrollBar::sub-page:vertical {
+    background: transparent;
+}
+
+/* ==================== 页面内的按钮 ==================== */
+
+/* 通用基础样式：三个按钮共享 */
+QPushButton#btn_wifi_on,
+QPushButton#btn_scan_network,
+QPushButton#btn_connect_wifi {
+    background-color: rgba(0, 10, 30, 0.60);
+    color: #F0E6A0;
+
+    border: 1px solid rgba(255, 215, 0, 0.20);
+    border-radius: 6px;
+
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+
+    padding: 8px 20px;
+    min-width: 72px;
+}
+
+/* 悬停：统一变蓝 */
+QPushButton#btn_wifi_on:hover,
+QPushButton#btn_scan_network:hover,
+QPushButton#btn_connect_wifi:hover {
+    background-color: rgba(77, 155, 255, 0.25);
+    border: 1px solid rgba(77, 155, 255, 0.50);
+    color: #ffffff;
+}
+
+/* 按下：颜色加深 */
+QPushButton#btn_wifi_on:pressed,
+QPushButton#btn_scan_network:pressed,
+QPushButton#btn_connect_wifi:pressed {
+    background-color: rgba(15, 94, 199, 0.85);
+    border: 1px solid rgba(15, 94, 199, 0.90);
+    color: #ffffff;
+    padding-top: 9px;
+    padding-bottom: 7px;
+}
+
+/* 禁用 */
+QPushButton#btn_wifi_on:disabled,
+QPushButton#btn_scan_network:disabled,
+QPushButton#btn_connect_wifi:disabled {
+    background-color: rgba(229, 231, 235, 0.15);
+    color: #9CA3AF;
+    border: 1px solid rgba(156, 163, 175, 0.20);
+}
+
+/* ---------- 个别微调 ---------- */
+
+/* 连接 WiFi：主要操作，淡金强调 */
+QPushButton#btn_connect_wifi {
+    border: 1px solid rgba(255, 215, 0, 0.35);
+    color: #FFD700;
+}
+QPushButton#btn_connect_wifi:hover {
+    background-color: rgba(255, 215, 0, 0.12);
+    border: 1px solid rgba(255, 215, 0, 0.55);
+    color: #FFD700;
+}
+
+
+
+/***********************************************************************************************************/
+/***********************************   设置时间页面   *****************************************************/
+/***********************************************************************************************************/
+
+/* ==================== QLabel ==================== */
+
+QLabel#label_setting_time,
+QLabel#label_setting_date {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+
+    color: #F0E6A0;
+
+    background-color: rgba(0, 10, 30, 0.45);
+    border: 1px solid rgba(255, 215, 0, 0.18);
+    border-radius: 6px;
+
+    padding: 6px 14px;
+    margin: 4px 0;
+
+    letter-spacing: 0.5px;
+}
+
+/* ==================== QSpinBox ==================== */
+
+QSpinBox#spinBox_hour,
+QSpinBox#spinBox_Min,
+QSpinBox#spinBox_Sec {
+    background-color: rgba(0, 10, 30, 0.55);
+    color: #E8E8E8;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+
+    padding: 6px 10px;
+    min-height: 18px;
+    min-width: 56px;
+
+    selection-background-color: rgba(77, 155, 255, 0.55);
+    selection-color: #ffffff;
+}
+
+QSpinBox#spinBox_hour:hover,
+QSpinBox#spinBox_Min:hover,
+QSpinBox#spinBox_Sec:hover {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+QSpinBox#spinBox_hour:focus,
+QSpinBox#spinBox_Min:focus,
+QSpinBox#spinBox_Sec:focus {
+    border: 1px solid rgba(77, 155, 255, 0.70);
+    background-color: rgba(10, 25, 55, 0.65);
+}
+
+QSpinBox#spinBox_hour:disabled,
+QSpinBox#spinBox_Min:disabled,
+QSpinBox#spinBox_Sec:disabled {
+    background-color: rgba(229, 231, 235, 0.10);
+    color: #6b7280;
+    border: 1px solid rgba(156, 163, 175, 0.15);
+}
+
+QSpinBox#spinBox_hour::up-button,
+QSpinBox#spinBox_Min::up-button,
+QSpinBox#spinBox_Sec::up-button,
+QSpinBox#spinBox_hour::down-button,
+QSpinBox#spinBox_Min::down-button,
+QSpinBox#spinBox_Sec::down-button {
+    background: transparent;
+    border: none;
+    width: 16px;
+}
+
+QSpinBox#spinBox_hour::up-arrow,
+QSpinBox#spinBox_Min::up-arrow,
+QSpinBox#spinBox_Sec::up-arrow {
+    image: none;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 5px solid rgba(255, 215, 0, 0.70);
+    width: 0;
+    height: 0;
+}
+
+QSpinBox#spinBox_hour::down-arrow,
+QSpinBox#spinBox_Min::down-arrow,
+QSpinBox#spinBox_Sec::down-arrow {
+    image: none;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid rgba(255, 215, 0, 0.70);
+    width: 0;
+    height: 0;
+}
+
+QSpinBox#spinBox_hour::up-arrow:hover,
+QSpinBox#spinBox_Min::up-arrow:hover,
+QSpinBox#spinBox_Sec::up-arrow:hover {
+    border-bottom: 5px solid #FFD700;
+}
+
+QSpinBox#spinBox_hour::down-arrow:hover,
+QSpinBox#spinBox_Min::down-arrow:hover,
+QSpinBox#spinBox_Sec::down-arrow:hover {
+    border-top: 5px solid #FFD700;
+}
+
+/* ==================== QDateEdit ==================== */
+
+QDateEdit#dateEdit {
+    background-color: rgba(0, 10, 30, 0.55);
+    color: #E8E8E8;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+
+    padding: 6px 10px;
+    min-height: 18px;
+    min-width: 110px;
+
+    selection-background-color: rgba(77, 155, 255, 0.55);
+    selection-color: #ffffff;
+}
+
+QDateEdit#dateEdit:hover {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+QDateEdit#dateEdit:focus {
+    border: 1px solid rgba(77, 155, 255, 0.70);
+    background-color: rgba(10, 25, 55, 0.65);
+}
+
+QDateEdit#dateEdit:disabled {
+    background-color: rgba(229, 231, 235, 0.10);
+    color: #6b7280;
+    border: 1px solid rgba(156, 163, 175, 0.15);
+}
+
+QDateEdit#dateEdit::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    width: 20px;
+    border: none;
+    background: transparent;
+}
+
+QDateEdit#dateEdit::down-arrow {
+    image: none;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid rgba(255, 215, 0, 0.70);
+    width: 0;
+    height: 0;
+}
+
+QDateEdit#dateEdit::down-arrow:hover {
+    border-top: 5px solid #FFD700;
+}
+
+/* 日历弹窗 */
+QDateEdit#dateEdit QCalendarWidget QWidget {
+    background-color: rgba(10, 20, 40, 0.95);
+    color: #E8E8E8;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 13px;
+}
+
+QDateEdit#dateEdit QCalendarWidget QAbstractItemView:enabled {
+    background-color: rgba(10, 20, 40, 0.95);
+    color: #c0c8d8;
+    selection-background-color: rgba(77, 155, 255, 0.35);
+    selection-color: #FFD700;
+    outline: none;
+}
+
+QDateEdit#dateEdit QCalendarWidget QAbstractItemView:disabled {
+    color: #6b7280;
+}
+
+QDateEdit#dateEdit QCalendarWidget QToolButton {
+    background-color: transparent;
+    color: #F0E6A0;
+    border: none;
+    border-radius: 5px;
+    padding: 4px 8px;
+}
+
+QDateEdit#dateEdit QCalendarWidget QToolButton:hover {
+    background-color: rgba(77, 155, 255, 0.18);
+    color: #ffffff;
+}
+
+/* ==================== QPushButton ==================== */
+
+/* 两个按钮完全一致的样式 */
+QPushButton#pBtn_ModifyTime,
+QPushButton#pBtn_ModifyDate {
+    background-color: rgba(0, 10, 30, 0.60);
+    color: #F0E6A0;
+
+    border: 1px solid rgba(255, 215, 0, 0.20);
+    border-radius: 6px;
+
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+
+    padding: 8px 20px;
+    min-width: 72px;
+}
+
+QPushButton#pBtn_ModifyTime:hover,
+QPushButton#pBtn_ModifyDate:hover {
+    background-color: rgba(77, 155, 255, 0.25);
+    border: 1px solid rgba(77, 155, 255, 0.50);
+    color: #ffffff;
+}
+
+QPushButton#pBtn_ModifyTime:pressed,
+QPushButton#pBtn_ModifyDate:pressed {
+    background-color: rgba(15, 94, 199, 0.85);
+    border: 1px solid rgba(15, 94, 199, 0.90);
+    color: #ffffff;
+    padding-top: 9px;
+    padding-bottom: 7px;
+}
+
+QPushButton#pBtn_ModifyTime:disabled,
+QPushButton#pBtn_ModifyDate:disabled {
+    background-color: rgba(229, 231, 235, 0.15);
+    color: #9CA3AF;
+    border: 1px solid rgba(156, 163, 175, 0.20);
+}
+
+
+/***********************************************************************************************************/
+/***********************************   label_ShowGif   *****************************************************/
+/***********************************************************************************************************/
+
+QLabel#label_ShowGif {
+    /* 背景：深蓝黑半透明，衬托 GIF 内容 */
+    background-color: rgba(0, 10, 30, 0.55);
+
+    /* 边框：极淡的金色描边，呼应整体质感 */
+    border: 1px solid rgba(255, 215, 0, 0.18);
+    border-radius: 10px;
+
+    /* 内容居中显示 */
+    qproperty-alignment: AlignCenter;
+
+    /* 内边距：让 GIF 不贴边，保留呼吸感 */
+    padding: 10px;
+
+    /* 尺寸兜底：避免空内容时塌陷 */
+    min-width: 120px;
+    min-height: 120px;
+
+    /* 文字兜底：万一显示文字，也保持统一风格 */
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 13px;
+    color: #a0aec0;
+}
+
