@@ -1,0 +1,51 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/Picture/desktop.jpg</file>
+        <file>resources/Ui/mianwindow/地图.png</file>
+        <file>resources/Ui/mianwindow/摄像头.png</file>
+        <file>resources/Ui/mianwindow/天气.png</file>
+        <file>resources/Ui/mianwindow/音乐.png</file>
+        <file>resources/mianwindow.qss</file>
+        <file>Music/Ui/cd.png</file>
+        <file>Music/Ui/播放中.png</file>
+        <file>Music/Ui/单曲循环.png</file>
+        <file>Music/Ui/列表循环.png</file>
+        <file>Music/Ui/上一曲.png</file>
+        <file>Music/Ui/收藏.png</file>
+        <file>Music/Ui/收藏 (1).png</file>
+        <file>Music/Ui/顺序播放.png</file>
+        <file>Music/Ui/随机播放.png</file>
+        <file>Music/Ui/下一曲.png</file>
+        <file>Music/Ui/暂停.png</file>
+        <file>Music/Ui/返回.png</file>
+        <file>Music/Ui/加.png</file>
+        <file>Music/Ui/减.png</file>
+        <file>resources/music.qss</file>
+        <file>resources/weather.qss</file>
+        <file>Weather/images/lei.png</file>
+        <file>Weather/images/qing.png</file>
+        <file>Weather/images/shachen.png</file>
+        <file>Weather/images/tmp.png</file>
+        <file>Weather/images/UI.png</file>
+        <file>Weather/images/UI1.png</file>
+        <file>Weather/images/UI2.png</file>
+        <file>Weather/images/UI3.jpg</file>
+        <file>Weather/images/UI3.png</file>
+        <file>Weather/images/UI4.jpg</file>
+        <file>Weather/images/UI4.png</file>
+        <file>Weather/images/UI5.jpg</file>
+        <file>Weather/images/wu.png</file>
+        <file>Weather/images/xiaoyu.png</file>
+        <file>Weather/images/xue.png</file>
+        <file>Weather/images/yin.png</file>
+        <file>Weather/images/yu.png</file>
+        <file>Weather/images/yujiaxue.png</file>
+        <file>Weather/images/yun.png</file>
+        <file>Weather/images/zhenyu.png</file>
+        <file>resources/Ui/mianwindow/设置.png</file>
+        <file>resources/setting.qss</file>
+        <file>Map/baidumap.cpp</file>
+        <file>Map/ui/放大.png</file>
+        <file>Map/ui/缩小.png</file>
+    </qresource>
+</RCC>
