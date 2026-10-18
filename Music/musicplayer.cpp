@@ -1,3 +1,7 @@
+/**
+ * @file        musicplayer.cpp
+ * @brief       音乐播放器窗口类实现
+ */
 #include "Music/musicplayer.h"
 #include "ui_musicplayer.h"
 
@@ -8,19 +12,19 @@ MusicPlayer::MusicPlayer(QWidget *parent) :
     ui(new Ui::MusicPlayer)
 {
     ui->setupUi(this);
-    //设置样式表
-    QFile file(":/resources/music.qss"); // ":/" 是Qt资源的固定前缀[reference:12]
+
+    /* 读取并应用音乐播放器样式表 */
+    QFile file(":/resources/music.qss");   // ":/" 表示从 Qt 资源文件读取
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QTextStream stream(&file);
         QString style = stream.readAll();
         file.close();
-
-        // 2. 只给当前 this（即 LoginDialog 本身及其子控件）设置样式
         this->setStyleSheet(style);
     }
 
-    /* 创建在线搜索音乐窗口 */
+    /* 创建在线搜索音乐窗口（暂未启用） */
 //    searchMusicWin = new SearchMusic(this);
+
     /* 初始化播放器并扫描本地音乐 */
     mediaPlayerInit();
     ScanLocalSongs();
@@ -50,16 +54,14 @@ MusicPlayer::MusicPlayer(QWidget *parent) :
     connect(musicPlayer,SIGNAL(positionChanged(qint64)),this,SLOT(on_musicPlayer_CurPostionChanged(qint64)));
     connect(&First_netManager,SIGNAL(finished(QNetworkReply* )),this,SLOT(on_GetSongTrueUrl(QNetworkReply* )));
     connect(&Second_netManager,SIGNAL(finished(QNetworkReply* )),this,SLOT(on_DownSong(QNetworkReply* )));
-
 }
-
 
 MusicPlayer::~MusicPlayer()
 {
     delete ui;
 }
 
-/*  扫描本地音乐  */
+/* 扫描本地音乐目录，将 *.mp3 文件加入播放列表 */
 void MusicPlayer::ScanLocalSongs()
 {
     /* 定位本地音乐目录 /myMusic */
@@ -92,21 +94,20 @@ void MusicPlayer::ScanLocalSongs()
             }
         }
     }
-
 }
 
-/* 初始化音乐播放器  */
+/* 初始化音乐播放器 */
 void MusicPlayer::mediaPlayerInit()
 {
     musicPlayer = new QMediaPlayer(this);
     musicPlayList = new QMediaPlaylist(this);
     musicPlayList->clear();
     musicPlayer->setPlaylist(musicPlayList);
-    /* 设置播放模式 循环、随机、顺序、当前循环、当前一次 */
+    /* 设置播放模式为随机播放 */
     musicPlayList->setPlaybackMode(QMediaPlaylist::Random);
 }
 
-/* 从本地文件加载收藏列表  */
+/* 从本地文件加载收藏列表 */
 void MusicPlayer::loadFavorites()
 {
     favoritesFilePath = QCoreApplication::applicationDirPath() + LocalSongsPath + "/favorites.txt";
@@ -131,7 +132,7 @@ void MusicPlayer::loadFavorites()
     }
 }
 
-/* 将收藏列表写入本地文件  */
+/* 将收藏列表写入本地文件 */
 void MusicPlayer::saveFavorites()
 {
     QFile f(favoritesFilePath);
@@ -143,7 +144,7 @@ void MusicPlayer::saveFavorites()
     f.close();
 }
 
-/* 把列表高亮同步到播放器当前歌曲（抑制 currentRowChanged 处理）  */
+/* 把列表高亮同步到播放器当前歌曲（抑制 currentRowChanged 处理） */
 void MusicPlayer::syncListToPlayer()
 {
     int idx = musicPlayList->currentIndex();
@@ -155,7 +156,7 @@ void MusicPlayer::syncListToPlayer()
     updateNowPlayingUi();
 }
 
-/* 刷新当前歌曲名与喜欢按钮图标  */
+/* 刷新当前歌曲名与喜欢按钮图标 */
 void MusicPlayer::updateNowPlayingUi()
 {
     int idx = musicPlayList->currentIndex();
@@ -167,25 +168,7 @@ void MusicPlayer::updateNowPlayingUi()
                                      : ":/Music/Ui/收藏.png"));
 }
 
-///*  打开在线搜索音乐界面  */
-//void MusicPlayer::on_pBtn_OpenSearchWin_clicked()
-//{
-//    searchMusicWin->show();
-//}
-
-
-///*  根据音乐url地址下载音乐 添加到本地  */
-//void MusicPlayer::AddMusicFromUrl(QString name, QString UrlPath)
-//{
-//    qDebug()<<UrlPath;
-//    /* 先通过 First_netManager 请求歌曲地址，获取真实下载地址 */
-//    First_request.setUrl(QUrl(UrlPath));
-//    First_netManager.get(First_request);
-//    CurrentSaveSongFileName = name;
-//}
-
-
-/*  用户点击其他音乐进行播放  */
+/* 用户点击其他音乐进行播放 */
 void MusicPlayer::on_listWidget_currentRowChanged(int currentRow)
 {
     if (m_syncingList)      /* 程序化同步列表时忽略 */
@@ -195,7 +178,7 @@ void MusicPlayer::on_listWidget_currentRowChanged(int currentRow)
     musicPlayer->stop();
     musicPlayList->setCurrentIndex(currentRow);
     musicPlayer->play();
-    ui->pBtn_Pause->setChecked(false);   /* 同步“播放/暂停”按钮为播放中状态 */
+    ui->pBtn_Pause->setChecked(false);   /* 同步"播放/暂停"按钮为播放中状态 */
     updateNowPlayingUi();
 }
 
@@ -207,7 +190,7 @@ void MusicPlayer::on_pBtn_Pre_clicked()
     musicPlayList->previous();
     syncListToPlayer();
     musicPlayer->play();
-    ui->pBtn_Pause->setChecked(false);   /* 同步“播放/暂停”按钮为播放中状态 */
+    ui->pBtn_Pause->setChecked(false);   /* 同步"播放/暂停"按钮为播放中状态 */
 }
 
 /* 点击切换下一首按钮 */
@@ -218,11 +201,10 @@ void MusicPlayer::on_pBtn_Next_clicked()
     musicPlayList->next();
     syncListToPlayer();
     musicPlayer->play();
-    ui->pBtn_Pause->setChecked(false);   /* 同步“播放/暂停”按钮为播放中状态 */
+    ui->pBtn_Pause->setChecked(false);   /* 同步"播放/暂停"按钮为播放中状态 */
 }
 
-
-/* 暂停音乐 */
+/* 播放/暂停音乐 */
 void MusicPlayer::on_pBtn_Pause_clicked()
 {
     if(ui->pBtn_Pause->isChecked())
@@ -233,8 +215,7 @@ void MusicPlayer::on_pBtn_Pause_clicked()
         musicPlayer->play();
 }
 
-
-/*  增加音量  */
+/* 增加音量 */
 void MusicPlayer::on_pBtn_Loud_clicked()
 {
     int curVolume = musicPlayer->volume();
@@ -242,9 +223,8 @@ void MusicPlayer::on_pBtn_Loud_clicked()
         return;
     else
         musicPlayer->setVolume(curVolume+10);
-    qDebug()<<"Curr Volumn"<<QString::number(musicPlayer->volume()) <<endl;
+    qDebug()<<"当前音量"<<QString::number(musicPlayer->volume()) <<endl;
 }
-
 
 /* 降低音量 */
 void MusicPlayer::on_pBtn_Low_clicked()
@@ -254,21 +234,16 @@ void MusicPlayer::on_pBtn_Low_clicked()
         return;
     else
         musicPlayer->setVolume(curVolume-10);
-    qDebug()<<"Curr Volumn"<<QString::number(musicPlayer->volume()) <<endl;
+    qDebug()<<"当前音量"<<QString::number(musicPlayer->volume()) <<endl;
 }
 
-
-
-
-/* 上下滑动音乐列表时 */
+/* 拖动进度条释放时：跳转到对应播放位置（毫秒） */
 void MusicPlayer::on_horizontalSlider_sliderReleased()
 {
-    /* 拖动进度条释放时，跳转到对应的播放位置（毫秒） */
     musicPlayer->setPosition(ui->horizontalSlider->value()*1000);
 }
 
-
-/* 切换音乐时更新音乐总时长  */
+/* 切换音乐时更新音乐总时长显示 */
 void MusicPlayer::on_musicPlayer_DurationChanged(qint64 duration)
 {
     ui->horizontalSlider->setMaximum(duration/1000);
@@ -297,7 +272,6 @@ void MusicPlayer::on_musicPlayer_CurPostionChanged(qint64 value )
     ui->label_CurTime->setText(curTime);
 }
 
-
 /* 点击循环播放按钮：在 顺序 -> 列表循环 -> 单曲循环 -> 随机 间循环切换 */
 void MusicPlayer::on_pBtn_mod_clicked()
 {
@@ -325,7 +299,7 @@ void MusicPlayer::on_pBtn_mod_clicked()
     ui->pBtn_mod->setStyleSheet(QString("border-image: url(:/Music/Ui/%1);").arg(icon));
 }
 
-/* 点击喜欢按钮：切换当前歌曲的收藏状态  */
+/* 点击喜欢按钮：切换当前歌曲的收藏状态 */
 void MusicPlayer::on_pBtn_SetLove_clicked()
 {
     int idx = musicPlayList->currentIndex();
@@ -350,8 +324,7 @@ void MusicPlayer::on_pBtn_SetLove_clicked()
     saveFavorites();
 }
 
-
-/* 根据音乐搜索网络请求，获取音乐的真实下载地址 */
+/* 处理获取歌曲真实下载地址的网络响应 */
 void MusicPlayer::on_GetSongTrueUrl(QNetworkReply *reply)
 {
     qDebug()<<"on_GetSongTrueUrl";
@@ -380,8 +353,7 @@ void MusicPlayer::on_GetSongTrueUrl(QNetworkReply *reply)
         }
 }
 
-
-/* 下载音乐到本地文件 */
+/* 下载歌曲到本地文件 */
 void MusicPlayer::on_DownSong(QNetworkReply *reply)
 {
     QFile file;
@@ -408,8 +380,7 @@ void MusicPlayer::on_DownSong(QNetworkReply *reply)
     }
 }
 
-
-/* 退出按钮  */
+/* 点击退出按钮：关闭音乐播放器并回到主界面 */
 void MusicPlayer::on_pBtn_Back_clicked()
 {
     if (parentWidget()) {
@@ -417,7 +388,6 @@ void MusicPlayer::on_pBtn_Back_clicked()
     }
     this->hide();
 }
-
 
 /* 处理语音控制传来的指令 */
 void MusicPlayer::on_handleCommand(int command)
@@ -436,14 +406,14 @@ void MusicPlayer::on_handleCommand(int command)
         if(musicPlayList->isEmpty())return;
         ui->listWidget->setCurrentRow(musicPlayList->previousIndex(1));
         musicPlayer->play();
-        ui->pBtn_Pause->setChecked(false);   /* 同步“播放/暂停”按钮为播放中状态 */
+        ui->pBtn_Pause->setChecked(false);   /* 同步"播放/暂停"按钮为播放中状态 */
         break;
     case MUSIC_COMMAND_PRE:
         if (!musicPlayList->isEmpty()) {
             musicPlayList->previous();
             syncListToPlayer();
             musicPlayer->play();
-            ui->pBtn_Pause->setChecked(false);   /* 同步“播放/暂停”按钮为播放中状态 */
+            ui->pBtn_Pause->setChecked(false);   /* 同步"播放/暂停"按钮为播放中状态 */
         }
         break;
     case MUSIC_COMMAND_NEXT:
@@ -451,12 +421,10 @@ void MusicPlayer::on_handleCommand(int command)
             musicPlayList->next();
             syncListToPlayer();
             musicPlayer->play();
-            ui->pBtn_Pause->setChecked(false);   /* 同步“播放/暂停”按钮为播放中状态 */
+            ui->pBtn_Pause->setChecked(false);   /* 同步"播放/暂停"按钮为播放中状态 */
         }
         break;
     default:
         break;
     }
 }
-
-

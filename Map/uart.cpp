@@ -1,5 +1,8 @@
-
-#define _GNU_SOURCE     //在源文件开头定义_GNU_SOURCE宏
+/**
+ * @file        uart.cpp
+ * @brief       串口操作模块实现
+ */
+#define _GNU_SOURCE     // 在源文件开头定义 _GNU_SOURCE 宏
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -14,30 +17,32 @@
 #include <QDebug>
 #include "uart.h"
 
-
-
-
 /**
- ** 串口初始化操作
- ** 参数device表示串口终端的设备节点
- **/
+ * @brief  打开串口设备
+ * @param  device 串口设备节点路径
+ * @return 成功返回文件描述符，失败返回 -1
+ */
 int uart_init(const char *device)
 {
     int uart_fd;
     device = (char*)"/dev/ttyS7";
-    /* 打开串口终端 */
+
+    /* 检查串口路径是否为空 */
     if(device == nullptr)
     {
         qDebug() << "串口路径未设置或为空！";
         return -1;
     }
+
+    /* 打开串口设备（以非阻塞方式，避免无数据时卡住） */
     qDebug() << "正在尝试打开串口:" << device;
     uart_fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY);
     if (0 > uart_fd) {
         fprintf(stderr, "open error: %s: %s\n", device, strerror(errno));
         return -1;
     }
-    /* 打开成功后恢复为阻塞模式，后续 read 仍按阻塞方式工作 */
+
+    /* 打开成功后恢复为阻塞模式，后续 read 按阻塞方式工作 */
     fcntl(uart_fd, F_SETFL, 0);
 
     qDebug() << "串口文件打开成功:" << device;
@@ -45,12 +50,14 @@ int uart_init(const char *device)
 }
 
 /**
- ** 串口配置
- ** 参数cfg指向一个uart_cfg_t结构体对象
- **/
+ * @brief  配置串口参数
+ * @param  cfg     串口配置结构体指针
+ * @param  uart_fd 已打开的串口文件描述符
+ * @return 成功返回 0，失败返回 -1
+ */
 int uart_cfg(const uart_cfg_t *cfg,int uart_fd)
 {
-    struct termios new_cfg = {0};   //将new_cfg对象清零
+    struct termios new_cfg = {0};   // 将 new_cfg 清零
     speed_t speed;
 
     /* 设置为原始模式 */
@@ -85,7 +92,7 @@ int uart_cfg(const uart_cfg_t *cfg,int uart_fd)
         break;
     case 500000: speed = B500000;
         break;
-    default:    //默认配置为115200
+    default:    // 默认使用 115200
         speed = B115200;
         printf("default baud rate: 115200\n");
         break;
@@ -96,8 +103,8 @@ int uart_cfg(const uart_cfg_t *cfg,int uart_fd)
         return -1;
     }
 
-    /* 设置数据位大小 */
-    new_cfg.c_cflag &= ~CSIZE;  //将数据位相关的比特位清零
+    /* 设置数据位 */
+    new_cfg.c_cflag &= ~CSIZE;  // 先将数据位相关比特位清零
     switch (cfg->dbit) {
     case 5:
         new_cfg.c_cflag |= CS5;
@@ -111,7 +118,7 @@ int uart_cfg(const uart_cfg_t *cfg,int uart_fd)
     case 8:
         new_cfg.c_cflag |= CS8;
         break;
-    default:    //默认数据位大小为8
+    default:    // 默认数据位为 8
         new_cfg.c_cflag |= CS8;
         printf("default data bit size: 8\n");
         break;
@@ -119,20 +126,20 @@ int uart_cfg(const uart_cfg_t *cfg,int uart_fd)
 
     /* 设置奇偶校验 */
     switch (cfg->parity) {
-    case 'N':       //无校验
+    case 'N':       // 无校验
         new_cfg.c_cflag &= ~PARENB;
         new_cfg.c_iflag &= ~INPCK;
         break;
-    case 'O':       //奇校验
+    case 'O':       // 奇校验
         new_cfg.c_cflag |= (PARODD | PARENB);
         new_cfg.c_iflag |= INPCK;
         break;
-    case 'E':       //偶校验
+    case 'E':       // 偶校验
         new_cfg.c_cflag |= PARENB;
-        new_cfg.c_cflag &= ~PARODD; /* 清除PARODD标志，配置为偶校验 */
+        new_cfg.c_cflag &= ~PARODD; // 清除 PARODD 标志，配置为偶校验
         new_cfg.c_iflag |= INPCK;
         break;
-    default:    //默认配置为无校验
+    default:        // 默认无校验
         new_cfg.c_cflag &= ~PARENB;
         new_cfg.c_iflag &= ~INPCK;
         printf("default parity: N\n");
@@ -141,19 +148,19 @@ int uart_cfg(const uart_cfg_t *cfg,int uart_fd)
 
     /* 设置停止位 */
     switch (cfg->sbit) {
-    case 1:     //1个停止位
+    case 1:     // 1 个停止位
         new_cfg.c_cflag &= ~CSTOPB;
         break;
-    case 2:     //2个停止位
+    case 2:     // 2 个停止位
         new_cfg.c_cflag |= CSTOPB;
         break;
-    default:    //默认配置为1个停止位
+    default:    // 默认 1 个停止位
         new_cfg.c_cflag &= ~CSTOPB;
         printf("default stop bit size: 1\n");
         break;
     }
 
-    /* 将MIN和TIME设置为0 */
+    /* 将 MIN 和 TIME 设置为 0（读取时不等待） */
     new_cfg.c_cc[VTIME] = 0;
     new_cfg.c_cc[VMIN] = 0;
 
@@ -163,26 +170,12 @@ int uart_cfg(const uart_cfg_t *cfg,int uart_fd)
         return -1;
     }
 
-    /* 写入配置、使配置生效 */
+    /* 写入配置并使其生效 */
     if (0 > tcsetattr(uart_fd, TCSANOW, &new_cfg)) {
         fprintf(stderr, "tcsetattr error: %s\n", strerror(errno));
         return -1;
     }
 
-    /* 配置OK 退出 */
+    /* 配置成功 */
     return 0;
 }
-
-/***
---dev=/dev/ttymxc2
---brate=115200
---dbit=8
---parity=N
---sbit=1
---type=read
-***/
-/**
- ** 打印帮助信息
- **/
-
-

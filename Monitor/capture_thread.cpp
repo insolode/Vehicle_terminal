@@ -1,12 +1,7 @@
-/******************************************************************
-Copyright © Deng Zhimao Co., Ltd. 2021-2030. All rights reserved.
-* @projectName   video_server
-* @brief         capture_thread.cpp  摄像头采集线程类实现
-* @author        Deng Zhimao
-* @email         dengzhimao@alientek.com
-* @link          www.openedv.com
-* @date          2021-11-19
-*******************************************************************/
+/**
+ * @file        capture_thread.cpp
+ * @brief       摄像头采集线程类实现
+ */
 #include "capture_thread.h"
 
 /* 摄像头采集线程执行体 */
@@ -105,7 +100,7 @@ void CaptureThread::run()
         QImage qImage = QImage::fromData(
             (const unsigned char*)bufs_info[buf.index].start, (int)buf.bytesused, "JPG");
 
-        /* 是否开启本地显示 */
+        /* 若开启本地显示，则发出图像就绪信号 */
         if (startLocalDisplay && !qImage.isNull())
             emit imageReady(qImage);
 
@@ -116,7 +111,8 @@ void CaptureThread::run()
         }
     }
 
-    msleep(800);//at lease 650
+    msleep(800);   // 至少 650ms，等待画面稳定
+
     /* 解除缓冲区映射 */
     for (int i = 0; i < VIDEO_BUFFER_COUNT; i++) {
         munmap(bufs_info[i].start, buf.length);

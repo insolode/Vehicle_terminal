@@ -1,12 +1,8 @@
-/******************************************************************
-Copyright © Deng Zhimao Co., Ltd. 2021-2030. All rights reserved.
-* @projectName   video_server
-* @brief         capture_thread.h  摄像头采集线程类声明
-* @author        Deng Zhimao
-* @email         dengzhimao@alientek.com
-* @link          www.openedv.com
-* @date          2021-11-19
-*******************************************************************/
+/**
+ * @file        capture_thread.h
+ * @brief       摄像头采集线程类声明
+ * @note        在后台线程中通过 V4L2 采集摄像头图像，供倒车影像显示。
+ */
 #ifndef CAPTURE_THREAD_H
 #define CAPTURE_THREAD_H
 
@@ -36,9 +32,9 @@ Copyright © Deng Zhimao Co., Ltd. 2021-2030. All rights reserved.
 #include <QUdpSocket>
 
 /* V4L2 摄像头设备节点和帧缓冲设备节点 */
-#define VIDEO_DEV			"/dev/video0"
-#define FB_DEV				"/dev/fb0"
-#define VIDEO_BUFFER_COUNT	3   /* 视频缓冲区数量 */
+#define VIDEO_DEV           "/dev/video0"
+#define FB_DEV              "/dev/fb0"
+#define VIDEO_BUFFER_COUNT  3   /* 视频缓冲区数量 */
 
 /* 缓冲区信息结构体：记录缓冲区的起始地址和长度 */
 struct buffer_info {
@@ -46,21 +42,23 @@ struct buffer_info {
     unsigned int length;
 };
 
-/* 摄像头采集线程类：在后台线程中通过 V4L2 采集摄像头图像 */
+/**
+ * @brief 摄像头采集线程类：在后台线程中通过 V4L2 采集摄像头图像
+ */
 class CaptureThread : public QThread
 {
     Q_OBJECT
 
 signals:
-    /* 准备图片 */
+    /* 图像就绪信号，携带一帧图像 */
     void imageReady(QImage);
     void sendImage(QImage);
 
 private:
-    /* 线程开启flag */
+    /* 线程运行标志 */
     bool startFlag = false;
 
-    /* 本地显示flag  */
+    /* 本地显示标志 */
     bool startLocalDisplay = false;
     /* 线程执行体：采集图像并发送 */
     void run() override;
@@ -69,23 +67,25 @@ public:
     CaptureThread(QObject *parent = nullptr) {
         Q_UNUSED(parent);
     }
-public :
-    /* 启动线程（设置开始标志并启动线程） */
+
+public:
+    /* 启动线程（置开始标志并启动线程） */
     void startThread()
     {
         startFlag = true;
         if (!this->isRunning())
             this->start();
     }
-    /* 停止线程（清除开始标志并退出线程） */
+
+    /* 停止线程（清除开始标志并等待线程退出） */
     void stopThread()
     {
         startFlag = false;
-        this->wait(2000);   // 等 run() 退出并完成 munmap/close，避免快速重启竞态
+        this->wait(2000);   // 等待 run() 退出并完成 munmap/close，避免快速重启竞态
     }
 
 public slots:
-    /* 设置线程 */
+    /* 根据传入标志启动或停止线程 */
     void setThreadStart(bool start) {
         startFlag = start;
         if (start) {
@@ -96,7 +96,7 @@ public slots:
         }
     }
 
-    /* 设置本地显示 */
+    /* 设置是否在本地显示图像 */
     void setLocalDisplay(bool start) {
         startLocalDisplay = start;
     }

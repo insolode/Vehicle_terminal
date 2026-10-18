@@ -1,0 +1,7 @@
+# 构建产物
+build/
+
+# Qt Creator 用户配置与自动保存文件
+*.pro.user
+*.pro.user.*
+*.autosave

@@ -1,6 +1,11 @@
+/**
+ * @file        clock.cpp
+ * @brief       表盘时钟控件类实现
+ */
 #include "clock.h"
 #include "ui_clock.h"
 
+/* 构造函数 */
 Clock::Clock(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Clock)
@@ -10,14 +15,16 @@ Clock::Clock(QWidget *parent) :
     ui->setupUi(this);
 }
 
+/* 析构函数 */
 Clock::~Clock()
 {
     delete ui;
 }
 
-
+/* 重绘事件：绘制表盘、刻度和指针 */
 void Clock::paintEvent(QPaintEvent *event)
 {
+    /* 定义时针、分针、秒针以及长/短刻度的坐标 */
     static const QPoint hourHand[3] =
         {
             QPoint(5, 14),
@@ -45,39 +52,39 @@ void Clock::paintEvent(QPaintEvent *event)
         QPoint(0,100),
         QPoint(0,95)
     };
-    //绘制的范围
+
+    /* 绘制的范围 */
     int side = qMin(width(), height());
-    //获取当前的时间
+
+    /* 获取当前时间 */
     time = QTime::currentTime();
-    //声明用来绘图用的painter
+
+    /* 创建画笔 */
     QPainter painter(this);
-    //绘制的图像反锯齿
+    /* 开启反锯齿 */
     painter.setRenderHint(QPainter::Antialiasing);
-    //重新定位坐标起始点，把坐标原点放到窗体的中央
+    /* 把坐标原点平移到窗口中央 */
     painter.translate(width() / 2, height() / 2);
-    //在表盘内添加文字（任意）
-    //painter.drawText(-75,-120,100,170,Qt::AlignRight,tr("ROLEX"));
-    //设定画布的边界
+    /* 按窗口边长缩放画布 */
     painter.scale(side / 200.0, side / 200.0);
-    //填充边线设为黑色，也可以设置为NoPen
+
+    /* 绘制时针 */
     painter.setPen( Qt::black );
-    //画刷颜色设定
     painter.setBrush(Qt::black);
-    //保存painter的状态
     painter.save();
-    //设置painter的旋转角度
     painter.rotate(30.0 * ((time.hour() + time.minute() / 60.0)));
-    //填充时针的区域
     painter.drawConvexPolygon(hourHand, 3);
     painter.restore();
+
+    /* 绘制 12 个小时刻度 */
     painter.setPen(Qt::blue);
-    //12个个刻度循环
     for (int i = 0; i < 12; ++i)
     {
         painter.drawLine(line_long[0],line_long[1]);
         painter.rotate(30.0);
     }
-    //绘制分针转角、刻度
+
+    /* 绘制分针转角、刻度 */
     painter.setPen(Qt::green);
     painter.setBrush(Qt::green);
     painter.save();
@@ -92,7 +99,7 @@ void Clock::paintEvent(QPaintEvent *event)
         painter.rotate(6.0);
     }
 
-    //绘制分针转角、刻度
+    /* 绘制分针转角、刻度 */
     painter.setPen(Qt::black);
     painter.setBrush(Qt::black);
     painter.save();
@@ -106,7 +113,8 @@ void Clock::paintEvent(QPaintEvent *event)
             painter.drawLine(line_short[0],line_short[1]);
         painter.rotate(6.0);
     }
-    //绘制秒针转角
+
+    /* 绘制秒针转角 */
     painter.setPen(Qt::black);
     painter.setBrush(Qt::black);
     painter.save();

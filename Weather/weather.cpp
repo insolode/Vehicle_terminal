@@ -1,3 +1,7 @@
+/**
+ * @file        weather.cpp
+ * @brief       天气窗口类实现
+ */
 #include "weather.h"
 #include "ui_weather.h"
 
@@ -6,20 +10,21 @@ Weather::Weather(QWidget *parent) :
     ui(new Ui::Weather)
 {
     ui->setupUi(this);
-    QFile file(":/resources/weather.qss"); // ":/" 是Qt资源的固定前缀[reference:12]
+
+    /* 读取并应用天气窗口样式表 */
+    QFile file(":/resources/weather.qss");   // ":/" 表示从 Qt 资源文件读取
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QTextStream stream(&file);
         QString style = stream.readAll();
         file.close();
-
-        // 2. 只给当前 this（即 LoginDialog 本身及其子控件）设置样式
         this->setStyleSheet(style);
     }
 
+    /* 发起天气数据网络请求（appid/appsecret 需替换为你自己的心知天气密钥） */
     request.setUrl(QUrl("http://v1.yiketianqi.com/free/week?appid=YOUR_APPID&appsecret=YOUR_APPSECRET&unescape=1"));
     netManager.get(request);
     connect(&netManager,SIGNAL(finished(QNetworkReply *)),this,SLOT(getWeatherInfo(QNetworkReply *)));
-    //qDebug()<<TransDataToWeek("2024-03-13");
+
     ui->groupBox_Total->setObjectName("MainGroupBox");
 //    ui->groupBox_Total->setStyleSheet("#MainGroupBox{background-image:url(':/weather/Weather/images/UI2.png');}");
 }
@@ -29,7 +34,7 @@ Weather::~Weather()
     delete ui;
 }
 
-/* 将日期转换为星期  */
+/* 将日期转换为星期 */
 QString Weather::TransDataToWeek(QString Data)
 {
     QDate date;
@@ -55,7 +60,7 @@ QString Weather::TransDataToWeek(QString Data)
     }
 }
 
-/* 将 xx-xx 转换为xx月xx日  */
+/* 将 "xx-xx" 转换为 "xx月xx日" */
 QString Weather::TransDataToMyData(QString Data)
 {
     QString MM = Data.split("-").at(1);
@@ -63,30 +68,30 @@ QString Weather::TransDataToMyData(QString Data)
     return QString("%1月%2日").arg(MM).arg(DD);
 }
 
-/* 拼接显示 昼夜温度  */
+/* 拼接显示昼夜温度 */
 QString Weather::TransTempToStr(QString tmpDay, QString tmpNight)
 {
     return QString("%1~%2 ℃").arg(tmpDay).arg(tmpNight);
 }
 
-/* 根据天气选择对应图片  */
+/* 根据天气描述选择对应图片 */
 QString Weather::SelectWeatherImg(QString WeatherDes)
 {
     return QString(":/Weather/images/%1.png").arg(WeatherDes);
 }
 
+/* 重新请求并更新天气信息 */
 void Weather::updateInfo()
 {
     netManager.get(request);
 }
 
-
-/* 根据网络请求结果解析得到天气数据  并转换为合适格式后显示  */
+/* 处理天气数据网络响应：解析并显示 */
 void Weather::getWeatherInfo(QNetworkReply *reply)
 {
     QByteArray bytes = reply->readAll();
     int num = bytes.size();
-        //qDebug()<<bytes;
+
     QJsonDocument doc = QJsonDocument::fromJson(bytes);
     if(!doc.isObject()){
         qDebug()<<"Netjson not an jsonObject!";
@@ -99,20 +104,20 @@ void Weather::getWeatherInfo(QNetworkReply *reply)
         QMessageBox::warning(this,"Warning","天气API过期，请更新API");
         return;
     }
+
     QJsonObject obj = doc.object();
-   // QString cityId = obj.value("cityid").toString();
     cityName = obj.value("city").toString();
     UpdateTime = obj.value("update_time").toString();
     QJsonArray arrays = obj.value("data").toArray();
 
-    // 【修复1】检查数组长度
+    /* 检查数组长度，数据不足时直接返回 */
     int arraySize = arrays.size();
     if(arraySize < 4) {
         QMessageBox::warning(this,"Warning","返回数据不足！");
         return;
     }
 
-    // 【修复2】循环前先清空旧数据，避免重复追加
+    /* 循环前先清空旧数据，避免重复追加 */
     weather_data.clear();
     weather_wea.clear();
     weather_tem_day.clear();
@@ -121,8 +126,8 @@ void Weather::getWeatherInfo(QNetworkReply *reply)
     weather_win_speed.clear();
     weather_wea_img.clear();
 
-    // 【修复3】根据实际数组长度循环，而不是固定7
-    int count = qMin(arraySize, 7);  // 最多取7天
+    /* 根据实际数组长度解析，最多取 7 天 */
+    int count = qMin(arraySize, 7);
     for(int i=0; i<count; i++)
     {
         weather_data.append(arrays[i].toObject().value("date").toString());
@@ -133,17 +138,18 @@ void Weather::getWeatherInfo(QNetworkReply *reply)
         weather_win_speed.append(arrays[i].toObject().value("win_speed").toString());
         weather_wea_img.append(arrays[i].toObject().value("wea_img").toString());
     }
-    qDebug()<< "获取数据wancheng" <<endl;
+    qDebug()<< "天气数据解析完成" <<endl;
 
-    // 【修复4】确保有足够数据再更新UI
+    /* 确保有足够数据再更新界面 */
     if(count < 5) {
         QMessageBox::warning(this,"Warning","数据不足5天，显示可能不完整！");
-        // 根据实际数据量决定是否继续
     }
 
     if(weather_data.size() > 4)
     {
-        qDebug()<< "写入数据中" <<endl;
+        qDebug()<< "天气数据写入界面中" <<endl;
+
+        /* 逐天更新日期、星期、天气描述、风向、风力、温度显示 */
         ui->label_day1_data->setText(TransDataToMyData(weather_data.at(1)));
         ui->label_day2_data->setText(TransDataToMyData(weather_data.at(2)));
         ui->label_day3_data->setText(TransDataToMyData(weather_data.at(3)));
@@ -174,10 +180,8 @@ void Weather::getWeatherInfo(QNetworkReply *reply)
         ui->label_day3_tmp->setText(TransTempToStr(weather_tem_day.at(3),weather_tem_night.at(3)));
         ui->label_day4_tmp->setText(TransTempToStr(weather_tem_day.at(4),weather_tem_night.at(4)));
 
-
+        /* 显示当前（今天）的天气详情 */
         QPixmap pixmap;
-
-
         ui->label_now_img->setScaledContents(true);
         pixmap.load(SelectWeatherImg(weather_wea_img.at(0)));
         ui->label_now_img->setPixmap(pixmap);
@@ -188,18 +192,17 @@ void Weather::getWeatherInfo(QNetworkReply *reply)
 
         ui->label_Time->setText(UpdateTime);
         ui->label_location->setText(cityName);
-        qDebug()<< "写入数据wancheng" <<endl;
+        qDebug()<< "天气数据写入完成" <<endl;
     }
-
-
-
 }
 
+/* 点击刷新按钮：重新获取天气信息 */
 void Weather::on_pushButton_clicked()
 {
     updateInfo();
 }
 
+/* 点击返回按钮：关闭天气窗口并回到主界面 */
 void Weather::on_pushButton_2_clicked()
 {
     if (parentWidget()) {

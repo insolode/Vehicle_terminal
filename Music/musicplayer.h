@@ -1,3 +1,9 @@
+/**
+ * @file        musicplayer.h
+ * @brief       音乐播放器窗口类声明
+ * @note        支持本地音乐扫描、播放控制（上一首/下一首/音量/循环模式）、
+ *              歌曲收藏以及语音控制指令。
+ */
 #ifndef MUSICPLAYER_H
 #define MUSICPLAYER_H
 
@@ -18,7 +24,6 @@
 /* 音乐模块命令定义（用于语音控制） */
 #define MUSIC_COMMAND_CLOSE 0
 #define MUSIC_COMMAND_SHOW 1
-#define MUSIC_COMMAND_CLOSE 0
 #define MUSIC_COMMAND_PRE 2
 #define MUSIC_COMMAND_NEXT 3
 #define MUSIC_COMMAND_PLAY 4
@@ -30,15 +35,14 @@ class MusicPlayer;
 
 /* 媒体信息结构体 */
 struct MediaObjectInfo {
-    /* 用于保存歌曲文件名 */
-    QString fileName;
-    /* 用于保存歌曲文件路径 */
-    QString filePath;
-    /* 是否为喜欢（收藏）歌曲 */
-    bool isFavorite = false;
+    QString fileName;        /* 歌曲文件名（不含后缀） */
+    QString filePath;        /* 歌曲文件完整路径 */
+    bool isFavorite = false; /* 是否为收藏歌曲 */
 };
 
-/* 音乐播放器窗口类 */
+/**
+ * @brief 音乐播放器窗口类
+ */
 class MusicPlayer : public QMainWindow
 {
     Q_OBJECT
@@ -47,13 +51,13 @@ public:
     explicit MusicPlayer(QWidget *parent = nullptr);
     ~MusicPlayer();
     QString LocalSongsPath = "/myMusic";  /* 本地音乐存放的相对路径 */
+
     /* 扫描本地音乐并加入播放列表 */
     void ScanLocalSongs();
     /* 初始化音乐播放器 */
     void mediaPlayerInit();
 
 private slots:
-
     /* 打开在线搜索音乐窗口 */
 //    void on_pBtn_OpenSearchWin_clicked();
     /* 根据 URL 添加在线音乐 */
@@ -98,16 +102,18 @@ private slots:
 
     /* 退出按钮 */
     void on_pBtn_Back_clicked();
+
 public slots:
     /* 处理语音控制传来的指令 */
     void on_handleCommand(int);
+
 private:
-    class SearchMusic *searchMusicWin; /* 在线搜索音乐窗口 */
+    class SearchMusic *searchMusicWin;      /* 在线搜索音乐窗口 */
     Ui::MusicPlayer *ui;
-    QMediaPlayer *musicPlayer;         /* 媒体播放器 */
-    QMediaPlaylist *musicPlayList;     /* 播放列表 */
-    QString CurrentSaveSongFileName;   /* 当前保存的歌曲文件名 */
-    QVector<MediaObjectInfo> SongInfoVector; /* 歌曲信息列表 */
+    QMediaPlayer *musicPlayer;              /* 媒体播放器 */
+    QMediaPlaylist *musicPlayList;          /* 播放列表 */
+    QString CurrentSaveSongFileName;        /* 当前保存的歌曲文件名 */
+    QVector<MediaObjectInfo> SongInfoVector;/* 歌曲信息列表 */
 
     QSet<QString> favoriteNames;    /* 收藏歌曲标题集合（键为 fileName） */
     QString favoritesFilePath;      /* 收藏列表持久化文件路径 */
@@ -122,11 +128,10 @@ private:
     /* 刷新当前歌曲名与喜欢按钮图标 */
     void updateNowPlayingUi();
 
-    QNetworkAccessManager First_netManager; /* 网络管理器：获取真实下载地址 */
+    QNetworkAccessManager First_netManager;  /* 网络管理器：获取真实下载地址 */
     QNetworkRequest First_request;
-    QNetworkAccessManager Second_netManager;/* 网络管理器：下载歌曲 */
+    QNetworkAccessManager Second_netManager; /* 网络管理器：下载歌曲 */
     QNetworkRequest Second_request;
-
 };
 
 #endif // MUSICPLAYER_H

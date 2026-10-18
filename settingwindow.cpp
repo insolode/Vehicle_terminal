@@ -1,19 +1,23 @@
+/**
+ * @file        settingwindow.cpp
+ * @brief       设置窗口类实现
+ */
 #include "settingwindow.h"
 #include "ui_settingwindow.h"
 
-
+/* 构造函数 */
 SettingWindow::SettingWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::SettingWindow)
 {
     ui->setupUi(this);
-    QFile file(":/resources/setting.qss"); // ":/" 是Qt资源的固定前缀[reference:12]
+
+    /* 读取并应用设置窗口样式表 */
+    QFile file(":/resources/setting.qss");   // ":/" 表示从 Qt 资源文件读取
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QTextStream stream(&file);
         QString style = stream.readAll();
         file.close();
-
-        // 2. 只给当前 this（即 LoginDialog 本身及其子控件）设置样式
         this->setStyleSheet(style);
     }
 
@@ -27,16 +31,18 @@ SettingWindow::SettingWindow(QWidget *parent)
     timer->setInterval(500);
     timer->start();
     connect(timer,SIGNAL(timeout()),this,SLOT(on_timer_updateTime()));
+
     /* 扫描并加载本地 GIF 文件 */
     ScanGif();
 }
 
+/* 析构函数 */
 SettingWindow::~SettingWindow()
 {
     delete ui;
 }
 
-/* 遍历本地gif文件  */
+/* 扫描本地 GIF 文件并加载播放 */
 void SettingWindow::ScanGif()
 {
     /* 定位到应用程序目录下的 /MyGif 文件夹 */
@@ -69,7 +75,6 @@ void SettingWindow::ScanGif()
     movie->start();
 }
 
-
 /* 读取当前系统时间并显示到 时/分/秒 spinBox */
 void SettingWindow::loadCurrentTime()
 {
@@ -86,6 +91,7 @@ void SettingWindow::showEvent(QShowEvent *event)
     loadCurrentTime();
 }
 
+/* 修改系统时间：调用 date 命令设置，再用 hwclock 同步到硬件时钟 */
 void SettingWindow::on_pBtn_ModifyTime_clicked()
 {
     /* 补零拼接成 hh:mm:ss，避免 "9:5:3" 这类格式 */
@@ -110,7 +116,7 @@ void SettingWindow::on_pBtn_ModifyTime_clicked()
     QMessageBox::information(this, "提示", "系统时间设置成功");
 }
 
-
+/* 修改系统日期：调用 date 命令设置，再用 hwclock 同步到硬件时钟 */
 void SettingWindow::on_pBtn_ModifyDate_clicked()
 {
     /* 获取界面选择的日期并拼接当前时间 */
@@ -127,6 +133,7 @@ void SettingWindow::on_pBtn_ModifyDate_clicked()
     process.close();
 }
 
+/* 随机切换一个 GIF 屏保 */
 void SettingWindow::on_pBtn_SwitchGif_clicked()
 {
     if(GifSum==0)return;
@@ -145,17 +152,16 @@ void SettingWindow::on_pBtn_SwitchGif_clicked()
     movie->start();
 }
 
-
+/* 返回按钮：关闭设置窗口 */
 void SettingWindow::on_pushButton_8_clicked()
 {
-
     this->hide();
 }
 
-
+/* 连接 WiFi：通过 wpa_cli 添加网络、设置密码并获取 IP */
 void SettingWindow::on_btn_connect_wifi_clicked()
 {
-    // 1. 检查选中项
+    /* 检查是否选中了 WiFi 网络 */
     QList<QListWidgetItem*> items = ui->listWidget->selectedItems();
     if (items.isEmpty()) {
         QMessageBox::warning(this, "提示", "请先选择一个 WiFi 网络");
@@ -168,7 +174,7 @@ void SettingWindow::on_btn_connect_wifi_clicked()
         return;
     }
 
-    // 2. 添加一个新网络，获取网络 ID
+    /* 通过 wpa_cli 添加一个新网络，获取网络 ID */
     process.start("wpa_cli", QStringList() << "-i" << "wlan0" << "add_network");
     process.waitForFinished(3000);
     QString netIdStr = QString::fromLocal8Bit(process.readAllStandardOutput()).trimmed();
@@ -181,28 +187,28 @@ void SettingWindow::on_btn_connect_wifi_clicked()
         return;
     }
 
-    // 3. 设置 SSID 和密码（注意 shell 转义）
+    /* 设置 SSID 和密码（注意 shell 转义） */
     QString setSsidCmd = QString("set_network %1 ssid '\"%2\"'").arg(netId).arg(wifiName);
     QString setPskCmd  = QString("set_network %1 psk '\"%2\"'").arg(netId).arg(password);
 
-    // 通过 bash -c 执行，确保引号被正确解析
+    /* 通过 bash -c 执行，确保引号被正确解析 */
     process.start("bash", QStringList() << "-c" << QString("wpa_cli -i wlan0 %1").arg(setSsidCmd));
     process.waitForFinished(3000); process.close();
 
     process.start("bash", QStringList() << "-c" << QString("wpa_cli -i wlan0 %1").arg(setPskCmd));
     process.waitForFinished(3000); process.close();
 
-    // 4. 启用网络
+    /* 启用该网络 */
     process.start("wpa_cli", QStringList() << "-i" << "wlan0" << "enable_network" << QString::number(netId));
     process.waitForFinished(5000);
     process.close();
 
-    // 5. 保存配置（写入 /etc/wpa_supplicant/wpa_supplicant.conf）
+    /* 保存配置（写入 /etc/wpa_supplicant/wpa_supplicant.conf） */
     process.start("wpa_cli", QStringList() << "-i" << "wlan0" << "save_config");
     process.waitForFinished(3000);
     process.close();
 
-    // 6. 等待连接建立并获取 IP（需要 root 权限运行 dhclient）
+    /* 等待连接建立并获取 IP（需要 root 权限运行 dhclient） */
     QThread::msleep(3000);
     process.start("dhclient", QStringList() << "wlan0");
     process.waitForFinished(10000);
@@ -218,10 +224,9 @@ void SettingWindow::on_btn_connect_wifi_clicked()
     QMessageBox::information(this, "成功", "WiFi 连接成功！");
 }
 
-
+/* 开启 WiFi：使用 ip 命令启用 wlan0 */
 void SettingWindow::on_btn_wifi_on_clicked()
 {
-    // 使用 ip 命令启用 wlan0（替代 ifconfig）
     process.start("ip", QStringList() << "link" << "set" << "wlan0" << "up");
     process.waitForFinished(5000);
 
@@ -229,32 +234,32 @@ void SettingWindow::on_btn_wifi_on_clicked()
     process.close();
 
     if (!error.isEmpty()) {
-        // 很可能是权限不足，提示用户需要 root 或 sudo
+        /* 很可能是权限不足，提示用户需要 root 或 sudo */
         QMessageBox::warning(this, "错误", "启用 WiFi 失败，请确保程序以 root 权限运行。\n" + error);
         return;
     }
     QMessageBox::information(this, "提示", "WiFi 已开启");
 }
 
-
+/* 扫描 WiFi 网络并显示结果列表 */
 void SettingWindow::on_btn_scan_network_clicked()
 {
     ui->listWidget->clear();
 
-    // 1. 确保 wlan0 已启用
+    /* 确保 wlan0 已启用 */
     process.start("ip", QStringList() << "link" << "set" << "wlan0" << "up");
     process.waitForFinished(3000);
     process.close();
 
-    // 2. 触发扫描
+    /* 触发扫描 */
     process.start("wpa_cli", QStringList() << "-i" << "wlan0" << "scan");
     process.waitForFinished(3000);
     process.close();
 
-    // 3. 等待扫描完成（wpa_cli scan 只是触发，结果需要稍后获取）
+    /* 等待扫描完成（wpa_cli scan 只是触发，结果需要稍后获取） */
     QThread::msleep(2000);
 
-    // 4. 获取扫描结果
+    /* 获取扫描结果 */
     process.start("wpa_cli", QStringList() << "-i" << "wlan0" << "scan_results");
     if (!process.waitForFinished(5000)) {
         QMessageBox::warning(this, "错误", "获取 WiFi 列表超时");
@@ -265,15 +270,15 @@ void SettingWindow::on_btn_scan_network_clicked()
     QString output = QString::fromLocal8Bit(process.readAllStandardOutput());
     process.close();
 
-    // 5. 解析输出（wpa_cli 输出以 Tab 分隔，SSID 在最后一列）
+    /* 解析输出（wpa_cli 输出以 Tab 分隔，SSID 在最后一列） */
     QStringList lines = output.split('\n', Qt::SkipEmptyParts);
     QSet<QString> added;
-    for (int i = 1; i < lines.count(); ++i) { // 跳过标题行
+    for (int i = 1; i < lines.count(); ++i) {   // 跳过标题行
         QStringList cols = lines.at(i).split('\t');
         if (cols.size() < 5) continue;
 
         QString ssid = cols.last().trimmed();
-        // 过滤空 SSID 和重复项
+        /* 过滤空 SSID 和重复项 */
         if (ssid.isEmpty() || added.contains(ssid)) continue;
 
         added.insert(ssid);
@@ -285,29 +290,27 @@ void SettingWindow::on_btn_scan_network_clicked()
     }
 }
 
-/* 更新当前窗口的时间显示 */
+/* 定时刷新设置窗口的时间显示 */
 void SettingWindow::on_timer_updateTime()
 {
     ui->label_setting_date->setText(QDate::currentDate().toString("yyyy-MM-dd"));
     ui->label_setting_time->setText(QTime::currentTime().toString("hh:mm:ss"));
 }
 
-
+/* 暂停/播放 GIF 屏保 */
 void SettingWindow::on_pBtn_PauseGif_clicked(bool checked)
 {
     if(0==GifSum)return;
     if(!checked)
     {
-        /* 按钮未选中时表示“暂停”，恢复播放 */
+        /* 按钮未选中时表示"暂停"，恢复播放 */
         ui->pBtn_PauseGif->setText("暂停");
         movie->setPaused(false);
     }
     else
     {
-        /* 按钮选中时表示“播放”，停止播放 */
+        /* 按钮选中时表示"播放"，停止播放 */
         ui->pBtn_PauseGif->setText("播放");
         movie->setPaused(true);
     }
 }
-
-

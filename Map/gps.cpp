@@ -1,3 +1,7 @@
+/**
+ * @file        gps.cpp
+ * @brief       GPS 数据解析模块实现
+ */
 #define _GNU_SOURCE
 #include "gps.h"
 #include "uart.h"
@@ -23,22 +27,27 @@ int gps_valid = 0;
 pthread_rwlock_t gps_rwlock;
 static char N_S_Flag = 'N';
 static char E_W_Flag = 'E';
-static double jingdu = 113.3800;
-static double weidu = 34.3500;
+static double jingdu = 116.4074;    // 默认经纬度为北京
+static double weidu = 39.9042;
 
 pthread_t threat_id;
 
+/**
+ * @brief 初始化 GPS 模块
+ * @return 成功返回 0，失败返回 -1
+ */
 int gps_init()
 {
-    // 防止重复初始化
+    /* 防止重复初始化 */
     if (gps_fd >= 0) {
-        return 0; // 已经打开过了，直接返回
+        return 0;   // 已经打开过，直接返回
     }
 
     gps_device = (char*)"/dev/ttyS7";
     qDebug() << "gps模块开始初始化";
 
 #if defined(__arm__) || defined(__aarch64__)
+    /* 配置串口参数：9600 波特率、8 数据位、无校验、1 停止位 */
     uart_cfg_t cfg = {0};
     gps_valid = 0;
     pthread_rwlock_init(&gps_rwlock, NULL);
@@ -47,16 +56,17 @@ int gps_init()
     cfg.sbit = 1;
     cfg.baudrate = 9600;
 
+    /* 打开并配置串口设备 */
     gps_fd = uart_init(gps_device);
     if (0 > gps_fd)
     {
         printf("uart init error \n");
-        return -1; // 打开失败直接退出！不要循环重试
+        return -1;  // 打开失败直接退出
     }
 
     if (uart_cfg(&cfg, gps_fd)) {
         close(gps_fd);
-        gps_fd = -1; // 重置文件描述符
+        gps_fd = -1;    // 配置失败，重置文件描述符
         printf("uart cfg error \n");
         return -1;
     }
@@ -68,7 +78,12 @@ int gps_init()
     return 0;
 }
 
-/*  被分析原始数据 函数调用，用于获取下一个逗号的位置  */
+/**
+ * @brief  获取第 uc_cnt 个逗号之后的偏移位置（用于拆分 NMEA 字段）
+ * @param  buf    原始数据缓冲区
+ * @param  uc_cnt 要定位的逗号序号
+ * @return 该逗号之后的缓冲区偏移
+ */
 int get_pos_dot(unsigned char *buf, unsigned char uc_cnt )
 {
     unsigned char *buf_x;
@@ -77,12 +92,19 @@ int get_pos_dot(unsigned char *buf, unsigned char uc_cnt )
     {
         if(*buf_x==',')
             uc_cnt--;
-
         buf_x++;
     }
     return buf_x-buf;
 }
-/*  被外界访问 获取经纬度数据  */
+
+/**
+ * @brief  供外部模块获取解析出的经纬度数据
+ * @param  N_S_Flag_p 输出：纬度南北半球标志
+ * @param  E_W_Flag_p 输出：经度东西半球标志
+ * @param  jingdu_p   输出：经度
+ * @param  weidu_p    输出：纬度
+ * @return 成功返回 0
+ */
 int getGpsData(char *N_S_Flag_p,char *E_W_Flag_p,double *jingdu_p,double *weidu_p)
 {
     pthread_rwlock_rdlock(&gps_rwlock);
@@ -91,9 +113,13 @@ int getGpsData(char *N_S_Flag_p,char *E_W_Flag_p,double *jingdu_p,double *weidu_
     *jingdu_p = jingdu;
     *weidu_p = weidu;
     pthread_rwlock_unlock(&gps_rwlock);
+    return 0;
 }
 
-/*  被回调函数调用 ，用于分析原始数据，得到经纬度数据 */
+/**
+ * @brief  分析原始 NMEA 数据，解析出经纬度
+ * @return 成功返回 0，数据无效返回 -1
+ */
 int analyseRawData()
 {
     char N_S_Flag_local;
@@ -101,6 +127,7 @@ int analyseRawData()
     double jingdu_local;
     double weidu_local;
     unsigned char uc_pos_x = 0;
+    /* 先判断语句类型，长度不足说明不是 GGA 语句，直接丢弃 */
     uc_pos_x = get_pos_dot(dataBuf,3);
     char num_buf[10];
     if(17>=uc_pos_x)
@@ -108,6 +135,7 @@ int analyseRawData()
         gps_valid = 0;
         return -1;
     }
+    /* 依次解析纬度、南北标志、经度、东西标志 */
     uc_pos_x = get_pos_dot(dataBuf,2);
     memcpy(num_buf,&dataBuf[uc_pos_x],9);
     num_buf[9]='\0';
@@ -123,6 +151,7 @@ int analyseRawData()
     uc_pos_x = get_pos_dot(dataBuf,5);
     E_W_Flag_local = dataBuf[uc_pos_x];
 
+    /* 写锁保护，更新全局经纬度数据 */
     pthread_rwlock_wrlock(&gps_rwlock);
     N_S_Flag = N_S_Flag_local;
     E_W_Flag = E_W_Flag_local;
@@ -133,7 +162,9 @@ int analyseRawData()
     return 0;
 }
 
-/*   线程回调函数  ，不断刷新获取GPS数据  */
+/**
+ * @brief GPS 解析线程执行体：不断从串口读取并解析数据
+ */
 static void * gps_thread_func(void* param)
 {
     char c;
@@ -143,33 +174,38 @@ static void * gps_thread_func(void* param)
         int n = read(gps_fd, &c, 1);
         if (n == 1) {
             if (c == '$') {
-                /* 一帧开始：清空缓冲区 */
+                /* 收到 '$'：一帧开始，清空缓冲区 */
                 OneFramStart = 1;
                 saveData_location = 0;
                 memset(dataBuf, 0, sizeof(dataBuf));
-            } else if (OneFramStart) {
+            }
+            else if (OneFramStart) {
                 if (c == '\n') {
-                    /* 一帧结束：收尾并解析 */
+                    /* 收到换行：一帧结束，收尾并解析 */
                     OneFramStart = 0;
                     dataBuf[saveData_location] = '\0';
                     if (dataBuf[3] == 'G') {   /* 只解析 GGA 语句 */
                         analyseRawData();
                     }
-                } else if (saveData_location < sizeof(dataBuf) - 1) {
+                }
+                else if (saveData_location < sizeof(dataBuf) - 1) {
                     dataBuf[saveData_location++] = c;
                 }
             }
         }
-        usleep(10000);   /* 没数据时短暂等待，别太长 */
+        usleep(10000);   /* 没数据时短暂等待，避免空转 */
 #else
+        /* 非 ARM 平台直接置为无效 */
         gps_valid = 0;
         usleep(50000);
 #endif
     }
 }
 
-
-/*  创建一个线程，实时更新GPS数据 **/
+/**
+ * @brief 创建 GPS 解析线程
+ * @return 成功返回 0，失败返回 -1
+ */
 int create_gps_thread()
 {
     int err;
@@ -181,78 +217,3 @@ int create_gps_thread()
     }
     return 0;
 }
-
-
-//static void read_data_handle(int sig,siginfo_t *info, void *context)
-//{
-//    char c;
-//    int ret;
-//    if(SIGRTMIN != sig)
-//        return;
-//    if (POLL_IN == info->si_code) {
-//        ret = read(gps_fd, &c, 1);
-//        if(1==OneFramStart)
-//        {
-//            if(0x0a==c)
-//            {
-//                OneFramStart = 0;
-//                dataBuf[saveData_location++]='\0';
-//                //printf("Read One Frame:%s\n",dataBuf);
-//                goto handle_one_frame_data;
-//            }
-//            dataBuf[saveData_location]=c;
-//            saveData_location++;
-//            return ;
-//        }
-//        if('$'==c)
-//        {
-//            OneFramStart = 1;
-//            memset(dataBuf, 0, sizeof(dataBuf));
-//            saveData_location = 0;
-//            return ;
-//        }
-//    }
-//handle_one_frame_data:
-//    if('G' == dataBuf[3])
-//    {
-//        analyseRawData();
-//        return ;
-//    }
-//}
-
-
-//int set_gps_async_update()
-//{
-//    struct sigaction sigatn;
-//    int flag;
-
-
-//    flag = fcntl(gps_fd, F_GETFL);
-//    flag |= O_ASYNC;
-//    fcntl(gps_fd, F_SETFL, flag);
-
-
-//    fcntl(gps_fd, F_SETOWN, getpid());
-
-
-//    fcntl(gps_fd, F_SETSIG, SIGRTMIN);
-
-
-//    sigatn.sa_sigaction = read_data_handle;
-//    sigatn.sa_flags = SA_SIGINFO;
-//    sigemptyset(&sigatn.sa_mask);
-//    sigaction(SIGRTMIN, &sigatn, NULL);
-//}
-
-//int main()
-//{
-//	gps_init();
-//	while(1)
-//	{
-//		printf("********************************\n");
-//		printf("%c-%4.4f | %c-%4.4f\n",N_S_Flag,weidu,E_W_Flag,jingdu);
-//		printf("********************************\n");
-//		usleep(1000000);
-//	}
-//}
-

@@ -1,11 +1,7 @@
-/******************************************************************
-Copyright © Deng Zhimao Co., Ltd. 1990-2030. All rights reserved.
-* @projectName   sensor
-* @brief         ap3216c.cpp  AP3216C 传感器类实现
-* @author        Deng Zhimao
-* @email         1252699831@qq.com
-* @date          2020-07-10
-*******************************************************************/
+/**
+ * @file        ap3216.cpp
+ * @brief       AP3216C 环境光/距离传感器类实现
+ */
 #include "ap3216.h"
 #include <stdio.h>
 #include <string.h>

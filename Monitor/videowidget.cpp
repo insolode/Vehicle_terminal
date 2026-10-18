@@ -1,22 +1,30 @@
+/**
+ * @file        videowidget.cpp
+ * @brief       视频显示控件类实现
+ */
 #include "videowidget.h"
 #include <QPainter>
 
+/* 构造函数 */
 VideoWidget::VideoWidget(QWidget *parent) : QWidget(parent)
 {
 }
 
+/* 设置要显示的图像帧并触发重绘 */
 void VideoWidget::setFrame(const QImage &frame)
 {
     m_frame = frame;
     update();
 }
 
+/* 清空画面 */
 void VideoWidget::clearFrame()
 {
     m_frame = QImage();
     update();
 }
 
+/* 设置宽高比模式 */
 void VideoWidget::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
     if (m_mode == mode)
@@ -25,11 +33,13 @@ void VideoWidget::setAspectRatioMode(Qt::AspectRatioMode mode)
     update();
 }
 
+/* 获取当前宽高比模式 */
 Qt::AspectRatioMode VideoWidget::aspectRatioMode() const
 {
     return m_mode;
 }
 
+/* 重绘事件：绘制当前图像帧 */
 void VideoWidget::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
